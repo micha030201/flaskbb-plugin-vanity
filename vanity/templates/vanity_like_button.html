@@ -1,0 +1,32 @@
+{% set likes = post.likers | length %}
+<a data-toggle="modal" href="#users-liking-post{{ post.id }}"><small>{{ likes }} like{% if likes != 1 %}s{% endif %}</small></a>
+<div class="modal fade" id="users-liking-post{{ post.id }}" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Users who liked this post</h4>
+            </div>
+            <div class="modal-body">
+            {% for user in post.likers %}
+                <div>
+                    <a href="{{ user.url }}">{{ user.username }}</a>
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if post.allowed_to_like(current_user) %}
+<form class="inline-form" method="post" action="{{ url_for('forum.delete_post', post_id=post.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    {% if current_user not in post.likers %}
+        <button formaction="{{ url_for("vanity.like", id=post.id) }}" type="submit" class="btn btn-icon fa-heart" style="color: #ff5454;" data-toggle="tooltip" data-placement="top" title="Like"></button>
+    {% else %}
+        <button formaction="{{ url_for("vanity.withdraw_like", id=post.id) }}" type="submit" class="btn btn-icon fa-heart-o" style="color: #ff5454;" data-toggle="tooltip" data-placement="top" title="Withdraw like"></button>
+    {% endif %}
+</form>
+{% else %}
+    <div class="btn btn-icon fa-heart" style="color: #555;" data-toggle="tooltip" data-placement="top" title="You are not allowed to like this"></div>
+{% endif %}
