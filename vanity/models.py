@@ -1,6 +1,7 @@
 from flaskbb.extensions import db
 from flaskbb.forum.models import Post
 from flaskbb.user.models import User
+from sqlalchemy.ext.associationproxy import association_proxy
 
 
 association_table = db.Table(
@@ -8,10 +9,6 @@ association_table = db.Table(
     db.Column('post_id', db.Integer, db.ForeignKey('posts.id')),
     db.Column('user_id', db.Integer, db.ForeignKey('users.id')),
 )
-
-
-Post.likers = db.relationship(
-    "User", secondary=association_table, lazy="joined")
 
 
 def _Post_allowed_to_like(self, user):
@@ -32,3 +29,27 @@ Post.allowed_to_like = _Post_allowed_to_like
 
 User.likes_received = db.Column(db.Integer, nullable=False, default=0)
 User.likes_given = db.Column(db.Integer, nullable=False, default=0)
+
+
+
+class PostLike(db.Model):
+    __tablename__ = 'vanity_postlikes'
+
+    post_id = db.Column(db.ForeignKey('posts.id'), primary_key=True)
+    post = db.relationship(Post, backref=db.backref("liked_by_users", cascade='all, delete-orphan'))
+    user_like_id = db.Column(db.ForeignKey('users.id'), primary_key=True)
+    user = db.relationship(
+        User,
+        uselist=False,
+        backref=db.backref(
+            "user_liked_posts",
+            cascade="all, delete-orphan",
+        ),
+    )
+
+
+#User.liked_posts = association_proxy("user_liked_posts", "liked_posts")
+Post.likers = association_proxy(
+    "liked_by_users", "user",
+    creator=lambda user: PostLike(user=user)
+)
