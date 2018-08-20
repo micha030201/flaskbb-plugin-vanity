@@ -25,7 +25,7 @@ User.likes_given = db.Column(db.Integer, nullable=False, default=0)
 
 
 def _get_userlike(user):
-    return UserLike.query.filter(UserLike.id == user.id).first()
+    return UserLike.query.filter(UserLike.id == user.id).first() or UserLike(user=user)
 
 
 class PostLike(db.Model):
