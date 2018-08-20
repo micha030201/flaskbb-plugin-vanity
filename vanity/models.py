@@ -4,13 +4,6 @@ from flaskbb.user.models import User
 from sqlalchemy.ext.associationproxy import association_proxy
 
 
-association_table = db.Table(
-    'vanity_association', db.Model.metadata,
-    db.Column('post_id', db.Integer, db.ForeignKey('posts.id')),
-    db.Column('user_id', db.Integer, db.ForeignKey('users.id')),
-)
-
-
 def _Post_allowed_to_like(self, user):
     return all((
         self,
@@ -37,7 +30,7 @@ class PostLike(db.Model):
 
     post_id = db.Column(db.ForeignKey('posts.id'), primary_key=True)
     post = db.relationship(Post, backref=db.backref("liked_by_users", cascade='all, delete-orphan'))
-    user_like_id = db.Column(db.ForeignKey('users.id'), primary_key=True)
+    user_id = db.Column(db.ForeignKey('users.id'), primary_key=True)
     user = db.relationship(
         User,
         uselist=False,
