@@ -4,13 +4,6 @@ from flaskbb.user.models import User
 from sqlalchemy.ext.associationproxy import association_proxy
 
 
-association_table = db.Table(
-    'vanity_association', db.Model.metadata,
-    db.Column('post_id', db.Integer, db.ForeignKey('posts.id')),
-    db.Column('user_id', db.Integer, db.ForeignKey('users.id')),
-)
-
-
 def _Post_allowed_to_like(self, user):
     return all((
         self,
@@ -31,21 +24,46 @@ User.likes_received = db.Column(db.Integer, nullable=False, default=0)
 User.likes_given = db.Column(db.Integer, nullable=False, default=0)
 
 
+def _get_userlike(user):
+    return UserLike.query.filter(UserLike.id == user.id).first()
+
 
 class PostLike(db.Model):
     __tablename__ = 'vanity_postlikes'
 
     post_id = db.Column(db.ForeignKey('posts.id'), primary_key=True)
     post = db.relationship(Post, backref=db.backref("liked_by_users", cascade='all, delete-orphan'))
-    user_like_id = db.Column(db.ForeignKey('users.id'), primary_key=True)
+    user_like_id = db.Column(db.ForeignKey('vanity_userlikes.id'), primary_key=True)
+    user = association_proxy(
+        "user_likes", "user",
+        creator=_get_userlike
+    )
+
+
+# this model exists to break the cyclic references
+class UserLike(db.Model):
+    __tablename__ = 'vanity_userlikes'
+
+    id = db.Column(db.ForeignKey('users.id'), primary_key=True)
     user = db.relationship(
         User,
         uselist=False,
         backref=db.backref(
             "user_liked_posts",
-            cascade="all, delete-orphan",
+            lazy='joined',
+            uselist=False
         ),
     )
+    post_likes = db.relationship(
+        PostLike,
+        backref=db.backref(
+            "user_likes",
+            lazy="joined",
+        ),
+        primaryjoin="UserLike.id == PostLike.user_like_id"
+    )
+
+    liked_posts = association_proxy("post_likes", "post")
 
 
 #User.liked_posts = association_proxy("user_liked_posts", "liked_posts")
