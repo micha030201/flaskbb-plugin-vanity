@@ -24,12 +24,17 @@ User.likes_received = db.Column(db.Integer, nullable=False, default=0)
 User.likes_given = db.Column(db.Integer, nullable=False, default=0)
 
 
-
 class PostLike(db.Model):
     __tablename__ = 'vanity_association'
 
     post_id = db.Column(db.ForeignKey('posts.id'), primary_key=True)
-    post = db.relationship(Post, backref=db.backref("liked_by_users", cascade='all, delete-orphan'))
+    post = db.relationship(
+        Post,
+        backref=db.backref(
+            "liked_by_users",
+            cascade='all, delete-orphan'
+        )
+    )
     user_id = db.Column(db.ForeignKey('users.id'), primary_key=True)
     user = db.relationship(
         User,

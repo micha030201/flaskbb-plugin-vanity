@@ -10,11 +10,11 @@
 """
 import os
 
-from flask import Blueprint, request, redirect, url_for, abort
+from flask import Blueprint, redirect, abort
 from flaskbb.utils.helpers import render_template
 from flask_login import current_user
 
-from .models import Post, User
+from .models import Post
 
 
 __version__ = "0.0.1"
@@ -32,7 +32,6 @@ def flaskbb_tpl_post_menu_before(post):
 def flaskbb_tpl_post_author_info_after(user, post):
     return ('<div>Likes given: {}</div><div>Likes received: {}</div>'
             .format(user.likes_given, user.likes_received))
-
 
 
 def flaskbb_load_blueprints(app):
