@@ -49,7 +49,8 @@ def like(id):
     post = Post.query.filter(Post.id == id).first_or_404()
     if current_user not in post.likers and post.allowed_to_like(current_user):
         post.likers.append(current_user)
-        post.user.likes_received += 1
+        if post.user:
+            post.user.likes_received += 1
         current_user.likes_given += 1
         post.save()
         return redirect(post.url)
@@ -62,7 +63,8 @@ def withdraw_like(id):
     post = Post.query.filter(Post.id == id).first_or_404()
     if current_user in post.likers and post.allowed_to_like(current_user):
         post.likers.remove(current_user)
-        post.user.likes_received -= 1
+        if post.user:
+            post.user.likes_received -= 1
         current_user.likes_given -= 1
         post.save()
         return redirect(post.url)
