@@ -32,6 +32,7 @@ class PostLike(db.Model):
         Post,
         backref=db.backref(
             "liked_by_users",
+            lazy='joined',
             cascade='all, delete-orphan'
         )
     )
