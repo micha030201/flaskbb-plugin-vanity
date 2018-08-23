@@ -40,6 +40,7 @@ class PostLike(db.Model):
     user = db.relationship(
         User,
         uselist=False,
+        lazy='joined',
         backref=db.backref(
             "user_liked_posts",
             cascade="all, delete-orphan",
@@ -47,7 +48,6 @@ class PostLike(db.Model):
     )
 
 
-#User.liked_posts = association_proxy("user_liked_posts", "liked_posts")
 Post.likers = association_proxy(
     "liked_by_users", "user",
     creator=lambda user: PostLike(user=user)
