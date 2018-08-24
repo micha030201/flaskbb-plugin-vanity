@@ -40,7 +40,7 @@ class PostLike(db.Model):
     user = db.relationship(
         User,
         uselist=False,
-        lazy='joined',
+        #lazy='joined',  # see: https://github.com/flaskbb/flaskbb/issues/503#issuecomment-415713742
         backref=db.backref(
             "user_liked_posts",
             cascade="all, delete-orphan",
