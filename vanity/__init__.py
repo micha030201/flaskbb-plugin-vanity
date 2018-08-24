@@ -21,7 +21,7 @@ from flask_login import current_user
 from .models import Post, User, PostLike
 
 
-__version__ = "0.0.2"
+__version__ = "0.1.0"
 
 
 # connect the hooks
