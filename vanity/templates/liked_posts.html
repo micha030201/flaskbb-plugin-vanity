@@ -1,0 +1,61 @@
+{% extends theme("user/profile_layout.html") %}
+{% from theme('macros.html') import render_pagination, topic_pages %}
+
+{% block breadcrumb %}
+<ul class="breadcrumb flaskbb-breadcrumb">
+    <li><a href="{{ url_for('forum.index') }}">{% trans %}Forum{% endtrans %}</a></li>
+    <li><a href="{{ user.url }}">{{ user.username }}</a></li>
+    <li class="active">{% trans %}Liked posts{% endtrans %}</li>
+</ul>
+{% endblock %}
+
+{% block profile_content %}
+<!-- middle column -->
+<div class="col-md-9 col-sm-9 col-xs-12 profile-content">
+
+    {% for post in posts.items %}
+    <div class="panel page-panel">
+        <div class="panel-heading page-head topic-head">
+            {# no attribute access in translated strings #}
+            {% set post_url = post.url %}
+            {% set topic_title = post.topic.title %}
+            {% set user_link %}
+                {% if post.user %}
+                    <a href="{{ post.user.url }}">{{ post.user.username }}</a>
+                {% else %}
+                    {{ post.username }}
+                {% endif %}
+            {% endset %}
+            {% trans %}<a href="{{ post_url }}">In topic <strong>{{ topic_title }}</strong></a> by {{ user_link }}{% endtrans %}
+        </div>
+        <div class="panel-body page-body topic-content">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="topic-created">
+                    {{ post.date_created|format_datetime }}
+                </div>
+                <div class="topic-content">
+                    {{ post.content|markup }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="alert-message alert-message-info" role="alert">
+                {% trans %}No posts liked yet{% endtrans %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    {% if posts.items %}
+    <div class="col-md-12 col-sm-12 col-xs-12 controls-col">
+        <div class="pull-left">
+            {{ render_pagination(posts, url_for('vanity.liked_posts', username=user.username)) }}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -10,11 +10,15 @@
 """
 import os
 
-from flask import Blueprint, redirect, abort
+from flask import Blueprint, redirect, abort, request
 from flaskbb.utils.helpers import render_template
+from flaskbb.display.navigation import NavigationLink
+from flaskbb.utils.settings import flaskbb_config
+from flaskbb.forum.models import Topic, Forum
+from flaskbb.user.models import Group
 from flask_login import current_user
 
-from .models import Post
+from .models import Post, User, PostLike
 
 
 __version__ = "0.0.2"
@@ -70,6 +74,36 @@ def withdraw_like(id):
         return redirect(post.url)
     else:
         abort(403)
+
+
+@bp.route('/<username>/liked_posts')
+def liked_posts(username):
+    page = request.args.get('page', 1, type=int)
+
+    group_ids = [g.id for g in current_user.groups]
+
+    user = User.query.filter_by(username=username).first_or_404()
+    posts = Post.query.outerjoin(
+        PostLike, Post.id == PostLike.post_id
+    ).filter(
+        PostLike.user_id == user.id,
+        Post.topic_id == Topic.id,
+        Topic.forum_id == Forum.id,
+        Forum.groups.any(Group.id.in_(group_ids))
+    ).order_by(
+        Post.id.desc()
+    ).paginate(page, flaskbb_config['POSTS_PER_PAGE'], False)
+
+    return render_template('liked_posts.html', user=user, posts=posts)
+
+
+def flaskbb_tpl_profile_sidebar_links(user):
+    return NavigationLink(
+        endpoint='vanity.liked_posts',
+        name='Liked posts',
+        icon='fa fa-heart',
+        urlforkwargs={'username': user.username},
+    ),
 
 
 SETTINGS = {}
